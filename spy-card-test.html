@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MKULTA Spy Test</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            font-family: monospace;
+        }
+        #message {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #gameContainer {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            gap: 10px;
+        }
+        .card {
+            width: 100px;
+            height: 150px;
+            background-color: #333;
+            border: 2px solid #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #fff;
+        }
+        .card-front {
+            background-color: #fff;
+            color: #000;
+            transform: rotateY(180deg);
+        }
+        .card-back {
+            background-color: #333;
+        }
+        /* Flicker animation */
+        @keyframes flicker {
+            0% { opacity: 1; }
+            20% { opacity: 0.7; }
+            40% { opacity: 1; }
+            60% { opacity: 0.6; }
+            80% { opacity: 0.9; }
+            100% { opacity: 1; }
+        }
+        .flicker {
+            animation: flicker 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="message">Level 1: Wrap your mind around it.</div>
+    <div id="gameContainer"></div>
+    <script>
+        const container = document.getElementById('gameContainer');
+        const message = document.getElementById('message');
+        const body = document.body;
+        const suits = ['♠', '♥', '♣', '♦'];
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        let cards = [];
+        let clickSequence = [];
+        let currentLevel = 1;
+        let clickCount = 0;
+
+        const levels = [
+            { level: 1, name: "Scytale", message: "Level 1: Wrap your mind around it.", correctSequence: ['A♠', '2♠', '3♠', '4♠'], success: "Level 1 Complete: Scytale cracked." },
+            { level: 2, name: "Caesar Cipher", message: "Level 2: Shift your perspective.", correctSequence: ['D♠', 'E♥', 'F♣', 'G♦'], success: "Level 2 Complete: Caesar’s code undone." },
+            { level: 3, name: "Freemason Cipher", message: "Level 3: Symbols hide the truth.", correctSequence: ['J♠', 'Q♥', 'K♣', 'A♦'], success: "Level 3 Complete: Pigpen revealed." },
+            { level: 4, name: "Great Cipher", message: "Level 4: Complexity is the key.", correctSequence: ['10♠', 'J♥', 'Q♣', 'K♦'], success: "Level 4 Complete: Louis XIV’s secret breached." },
+            { level: 5, name: "Jefferson Wheel", message: "Level 5: Rotate to align.", correctSequence: ['5♠', '5♥', '5♣', '5♦'], success: "Level 5 Complete: Jefferson’s wheel turns. Welcome to MKULTA." }
+        ];
+
+        const easterEggs = [
+            { pattern: ['K♠', 'Q♠', 'J♠', '10♠'], message: "Easter Egg: Scytale - Ancient Spartan cipher detected." },
+            { pattern: ['A♠', '2♥', '3♣', '4♦'], message: "Easter Egg: Caesar - Shifted message uncovered." },
+            { pattern: ['A♠', 'A♥', 'A♣', 'A♦'], message: "Easter Egg: Freemason - Symbolic unity found." },
+            { pattern: ['K♠', 'K♥', 'K♣', 'K♦'], message: "Easter Egg: Great Cipher - Royal dominance noted." },
+            { pattern: ['2♠', '2♥', '2♣', '2♦'], message: "Easter Egg: Jefferson - Wheel alignment confirmed." }
+        ];
+
+        const mkultaMessages = [
+            "Eyes in the void.",
+            "You are not alone.",
+            "Whispers trace your steps.",
+            "The abyss gazes back.",
+            "No escape from MKULTA.",
+            "They know your shadow.",
+            "Cold steel watches.",
+            "Truth is a lie here.",
+            "Silent eyes bleed.",
+            "You cannot hide, Initiate."
+        ];
+
+        function generateCard() {
+            const suit = suits[Math.floor(Math.random() * suits.length)];
+            const value = values[Math.floor(Math.random() * values.length)];
+            return `${value}${suit}`;
+        }
+
+        function initGame(level) {
+            container.innerHTML = '';
+            cards = [];
+            clickSequence = [];
+            clickCount = 0;
+            message.textContent = levels[level - 1].message;
+            body.classList.remove('flicker');
+            for (let i = 0; i < 16; i++) {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.index = i;
+                card.innerHTML = `
+                    <div class="card-face card-back">?</div>
+                    <div class="card-face card-front">${generateCard()}</div>
+                `;
+                card.addEventListener('click', flipCard);
+                container.appendChild(card);
+                cards.push(card);
+            }
+        }
+
+        function showMysteriousMessage(isLevelComplete = false) {
+            const randomMsg = mkultaMessages[Math.floor(Math.random() * mkultaMessages.length)];
+            message.textContent = isLevelComplete ? `${levels[currentLevel - 1].success}\n${randomMsg}` : randomMsg;
+            body.classList.add('flicker');
+            setTimeout(() => {
+                message.textContent = isLevelComplete && currentLevel >= levels.length ? levels[currentLevel - 1].success : levels[currentLevel - 1].message;
+                body.classList.remove('flicker');
+            }, 3000);
+        }
+
+        function flipCard(e) {
+            const card = e.target.closest('.card');
+            if (!card || card.classList.contains('flipped')) return;
+
+            card.classList.add('flipped');
+            const front = card.querySelector('.card-front');
+            const currentValue = front.textContent;
+            clickSequence.push(currentValue);
+            clickCount++;
+
+            setTimeout(() => {
+                front.textContent = generateCard();
+                card.classList.remove('flipped');
+            }, 1000);
+
+            // Rare MKULTA message (1% after 10 clicks)
+            if (clickCount > 10 && Math.random() < 0.01) {
+                showMysteriousMessage();
+            }
+
+            checkSequence();
+            checkEasterEggs();
+        }
+
+        function checkSequence() {
+            const levelData = levels[currentLevel - 1];
+            if (clickSequence.length >= levelData.correctSequence.length) {
+                const lastClicks = clickSequence.slice(-levelData.correctSequence.length);
+                if (lastClicks.join('') === levelData.correctSequence.join('')) {
+                    showMysteriousMessage(true);
+                    cards.forEach(card => card.removeEventListener('click', flipCard));
+                    if (currentLevel < levels.length) {
+                        setTimeout(() => {
+                            currentLevel++;
+                            initGame(currentLevel);
+                        }, 4000);
+                    }
+                } else if (clickSequence.length > 10) {
+                    message.textContent = "Access Denied: Try again.";
+                    clickSequence = [];
+                    setTimeout(() => {
+                        message.textContent = levelData.message;
+                    }, 2000);
+                }
+            }
+        }
+
+        function checkEasterEggs() {
+            easterEggs.forEach(egg => {
+                if (clickSequence.length >= egg.pattern.length) {
+                    const lastClicks = clickSequence.slice(-egg.pattern.length);
+                    if (lastClicks.join('') === egg.pattern.join('')) {
+                        message.textContent = egg.message;
+                        body.classList.add('flicker');
+                        setTimeout(() => {
+                            message.textContent = levels[currentLevel - 1].message;
+                            body.classList.remove('flicker');
+                        }, 3000);
+                    }
+                }
+            });
+        }
+
+        initGame(currentLevel);
+    </script>
+</body>
+</html>
